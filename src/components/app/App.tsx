@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import SearchBar from "../searchBar/SearchBar";
 import ImageGallery from "../imageGallery/ImageGallery";
 import ImageModal from "../imageModal/ImageModal";
 import Loader from "../loader/Loader";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import LoadMoreBtn from "../loadMoreBtn/LoadMoreBtn";
-import { ServerResponse } from "../../Types";
 import { Image } from "../../Types";
 
 import { Toaster } from "react-hot-toast";
@@ -25,10 +24,10 @@ function App() {
   const fetchImages = async (
     searchQuery: string,
     numPage: number
-  ): Promise<object[]> => {
+  ): Promise<Image[]> => {
     try {
       setLoading(true);
-      const res: ServerResponse = await axios.get(
+      const res: AxiosResponse = await axios.get(
         `https://api.unsplash.com/search/photos?page=${numPage}&query=${searchQuery}`,
         {
           headers: {
@@ -96,7 +95,7 @@ function App() {
       <SearchBar onSubmit={handleSubmit} />
       {error ? (
         <ErrorMessage message={error} />
-      ) : images ? ( // Перевірка на null
+      ) : images ? (
         <>
           <ImageGallery images={images} openModal={modalOpen} />
           {images.length > 0 && !error && (
