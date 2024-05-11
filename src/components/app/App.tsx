@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-// import SearchBar from "./components/searchBar/SearchBar";
-// import ImageGallery from "./components/imageGallery/ImageGallery";
-// import ImageModal from "./components/imageModal/ImageModal";
-// import Loader from "./components/loader/Loader";
-// import ErrorMessage from "./components/errorMessage/ErrorMessage";
-// import LoadMoreBtn from "./components/loadMoreBtn/LoadMoreBtn";
+import SearchBar from "../searchBar/SearchBar";
+import ImageGallery from "../imageGallery/ImageGallery";
+import ImageModal from "../imageModal/ImageModal";
+import Loader from "../loader/Loader";
+import ErrorMessage from "../errorMessage/ErrorMessage";
+import LoadMoreBtn from "../loadMoreBtn/LoadMoreBtn";
 import { Image } from "../../Types";
 
 import { Toaster } from "react-hot-toast";
@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast";
 import "./App.css";
 
 function App() {
-  const [images, setImages] = useState<object[]>([]);
+  const [images, setImages] = useState<Image[] | null>(null);
   const [page, setPage] = useState<number>(1);
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +54,14 @@ function App() {
       try {
         if (query !== "") {
           const newImages = await fetchImages(query, page);
-          setImages((prevImg) => [...prevImg, ...newImages]);
+          setImages((prevImages: Image[] | null) => {
+            if (prevImages === null) {
+              return newImages; // Якщо prevImages є null, повертаємо новий масив зображень
+            } else {
+              // Інакше, повертаємо об'єднання попереднього масиву зображень і нового масиву
+              return [...prevImages, ...newImages];
+            }
+          });
         }
       } catch (error) {
         setError("An unknown error occurred.");
@@ -89,11 +96,14 @@ function App() {
       <SearchBar onSubmit={handleSubmit} />
       {error ? (
         <ErrorMessage message={error} />
-      ) : (
-        <ImageGallery images={images} openModal={modalOpen} />
-      )}
-      {images.length > 0 && !error && <LoadMoreBtn onClick={handleLoadMore} />}
-
+      ) : images ? ( // Перевірка на null
+        <>
+          <ImageGallery images={images} openModal={modalOpen} />
+          {images.length > 0 && !error && (
+            <LoadMoreBtn onClick={handleLoadMore} />
+          )}
+        </>
+      ) : null}
       {modalIsOpen && selectedImage && (
         <ImageModal
           image={selectedImage}
