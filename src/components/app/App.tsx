@@ -1,35 +1,110 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import axios from "axios";
+// import SearchBar from "./components/searchBar/SearchBar";
+// import ImageGallery from "./components/imageGallery/ImageGallery";
+// import ImageModal from "./components/imageModal/ImageModal";
+// import Loader from "./components/loader/Loader";
+// import ErrorMessage from "./components/errorMessage/ErrorMessage";
+// import LoadMoreBtn from "./components/loadMoreBtn/LoadMoreBtn";
+import { Image } from "../../Types";
+
+import { Toaster } from "react-hot-toast";
+
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [images, setImages] = useState<object[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [query, setQuery] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
+
+  const fetchImages = async (
+    searchQuery: string,
+    numPage: number
+  ): Promise<object[]> => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `https://api.unsplash.com/search/photos?page=${numPage}&query=${searchQuery}`,
+        {
+          headers: {
+            Authorization:
+              "Client-ID Ph4PpdJNR_bfnGbfoO28ljpqE_IueaOsvzxI3HR8ys0",
+          },
+        }
+      );
+      return res.data.results.slice(0, 9) as Image[];
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (query !== "") {
+          const newImages = await fetchImages(query, page);
+          setImages((prevImg) => [...prevImg, ...newImages]);
+        }
+      } catch (error) {
+        setError("An unknown error occurred.");
+      }
+    };
+
+    fetchData();
+  }, [query, page]);
+
+  function handleSubmit(searchQuery: string): void {
+    setQuery(searchQuery);
+    setError(null);
+    setPage(1);
+    setImages([]);
+  }
+
+  const handleLoadMore = (): void => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  const modalOpen = (photo: Image): void => {
+    setSelectedImage(photo);
+    setModalIsOpen(true);
+  };
+
+  const closeModal = (): void => {
+    setModalIsOpen(false);
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <SearchBar onSubmit={handleSubmit} />
+      {error ? (
+        <ErrorMessage message={error} />
+      ) : (
+        <ImageGallery images={images} openModal={modalOpen} />
+      )}
+      {images.length > 0 && !error && <LoadMoreBtn onClick={handleLoadMore} />}
+
+      {modalIsOpen && selectedImage && (
+        <ImageModal
+          image={selectedImage}
+          openModal={modalIsOpen}
+          closeModal={closeModal}
+        />
+      )}
+      {loading && <Loader />}
+      <Toaster position="top-right" reverseOrder={false} />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
