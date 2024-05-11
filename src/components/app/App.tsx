@@ -6,6 +6,7 @@ import ImageModal from "../imageModal/ImageModal";
 import Loader from "../loader/Loader";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import LoadMoreBtn from "../loadMoreBtn/LoadMoreBtn";
+import { ServerResponse } from "../../Types";
 import { Image } from "../../Types";
 
 import { Toaster } from "react-hot-toast";
@@ -27,7 +28,7 @@ function App() {
   ): Promise<object[]> => {
     try {
       setLoading(true);
-      const res = await axios.get(
+      const res: ServerResponse = await axios.get(
         `https://api.unsplash.com/search/photos?page=${numPage}&query=${searchQuery}`,
         {
           headers: {
@@ -56,9 +57,8 @@ function App() {
           const newImages = await fetchImages(query, page);
           setImages((prevImages: Image[] | null) => {
             if (prevImages === null) {
-              return newImages; // Якщо prevImages є null, повертаємо новий масив зображень
+              return newImages;
             } else {
-              // Інакше, повертаємо об'єднання попереднього масиву зображень і нового масиву
               return [...prevImages, ...newImages];
             }
           });

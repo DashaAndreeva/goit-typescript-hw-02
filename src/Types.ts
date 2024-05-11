@@ -7,3 +7,8 @@ export interface Image {
   id: string;
   length: number;
 }
+
+export interface ServerResponse {
+  total_pages: number;
+  results: Image[];
+}
