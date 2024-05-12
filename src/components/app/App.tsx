@@ -6,7 +6,7 @@ import ImageModal from "../imageModal/ImageModal";
 import Loader from "../loader/Loader";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import LoadMoreBtn from "../loadMoreBtn/LoadMoreBtn";
-import { Image } from "../../Types";
+import { Image, ServerResponse } from "../../Types";
 
 import { Toaster } from "react-hot-toast";
 
@@ -27,7 +27,7 @@ function App() {
   ): Promise<Image[]> => {
     try {
       setLoading(true);
-      const res: AxiosResponse = await axios.get(
+      const res: AxiosResponse<ServerResponse> = await axios.get(
         `https://api.unsplash.com/search/photos?page=${numPage}&query=${searchQuery}`,
         {
           headers: {
